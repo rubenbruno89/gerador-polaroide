@@ -1,0 +1,210 @@
+<html><head><base href="https://fonts.googleapis.com/css?family=Shadows+Into+Light" target="_blank"><style>
+body {
+    font-family: 'Shadows Into Light', cursive;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f0f0f0;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+.controls {
+    margin: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.polaroid-sheet {
+    width: 600px;
+    height: 400px;
+    background: white;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 20px;
+    position: relative;
+}
+
+.cut-lines {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.cut-line {
+    position: absolute;
+    border: 2px dashed #999;
+    opacity: 0.5;
+}
+
+.cut-line.vertical {
+    width: 0;
+    height: calc(100% + 40px);
+    left: 50%;
+    top: -20px;
+    border-left: 2px dashed #999;
+}
+
+.polaroid {
+    background: white;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transform: rotate(-3deg);
+    transition: transform 0.3s ease;
+    width: 220px;
+    margin: 0 20px;
+}
+
+.polaroid:nth-child(2) {
+    transform: rotate(3deg);
+}
+
+.polaroid:hover {
+    transform: scale(1.02) rotate(0deg);
+}
+
+.photo-container {
+    width: 200px;
+    height: 200px;
+    background: #f8f8f8;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.photo-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.caption {
+    text-align: center;
+    font-size: 1.2em;
+    margin-top: 10px;
+}
+
+button {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 5px;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #45a049;
+}
+
+input[type="text"] {
+    padding: 8px;
+    margin: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.scissors-icon {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+}
+</style></head><body>
+    <div class="controls">
+        <input type="file" id="photo1" accept="image/*">
+        <input type="text" id="caption1" placeholder="Legenda foto 1">
+        <br>
+        <input type="file" id="photo2" accept="image/*">
+        <input type="text" id="caption2" placeholder="Legenda foto 2">
+        <br>
+        <button onclick="generatePolaroids()">Gerar Polaroids</button>
+        <button onclick="downloadSheet()">Baixar Folha</button>
+        <button onclick="toggleCutLines()">Mostrar/Ocultar Linhas de Corte</button>
+    </div>
+
+    <div class="polaroid-sheet" id="polaroidSheet">
+        <div class="cut-lines" id="cutLines" style="display: none;">
+            <div class="cut-line vertical"></div>
+            <div class="scissors-icon">✂️</div>
+        </div>
+        <div class="polaroid">
+            <div class="photo-container">
+                <img id="preview1" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='100%25' height='100%25' fill='%23f8f8f8'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' fill='%23999' text-anchor='middle' dy='.3em'%3ESelecione uma foto%3C/text%3E%3C/svg%3E">
+            </div>
+            <div class="caption" id="caption1Text">Sua legenda aqui</div>
+        </div>
+        <div class="polaroid">
+            <div class="photo-container">
+                <img id="preview2" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='100%25' height='100%25' fill='%23f8f8f8'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' fill='%23999' text-anchor='middle' dy='.3em'%3ESelecione uma foto%3C/text%3E%3C/svg%3E">
+            </div>
+            <div class="caption" id="caption2Text">Sua legenda aqui</div>
+        </div>
+    </div>
+
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        document.getElementById('photo1').addEventListener('change', function() {
+            previewImage(this, 'preview1');
+        });
+
+        document.getElementById('photo2').addEventListener('change', function() {
+            previewImage(this, 'preview2');
+        });
+
+        function generatePolaroids() {
+            const caption1 = document.getElementById('caption1').value || 'Sua legenda aqui';
+            const caption2 = document.getElementById('caption2').value || 'Sua legenda aqui';
+            
+            document.getElementById('caption1Text').textContent = caption1;
+            document.getElementById('caption2Text').textContent = caption2;
+        }
+
+        function downloadSheet() {
+            const cutLines = document.getElementById('cutLines');
+            const wasHidden = cutLines.style.display === 'none';
+            cutLines.style.display = 'block';
+            
+            html2canvas(document.getElementById('polaroidSheet')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'polaroids.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                if (wasHidden) {
+                    cutLines.style.display = 'none';
+                }
+            });
+        }
+
+        function toggleCutLines() {
+            const cutLines = document.getElementById('cutLines');
+            cutLines.style.display = cutLines.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</body></html>
